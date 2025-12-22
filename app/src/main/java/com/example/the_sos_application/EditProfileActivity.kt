@@ -1,36 +1,37 @@
 package com.example.the_sos_application
 
-import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.the_sos_application.databinding.ActivityEditProfileBinding
 
 class EditProfileActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivityEditProfileBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_edit_profile)
-
-        val etName = findViewById<EditText>(R.id.etEditName)
-        val etEmail = findViewById<EditText>(R.id.etEditEmail)
-        val etPhone = findViewById<EditText>(R.id.etEditPhone)
-        val etBlood = findViewById<EditText>(R.id.etEditBloodType)
-        val btnSave = findViewById<Button>(R.id.btnSaveProfile)
+        binding = ActivityEditProfileBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         // Load existing data
         val user = MockData.currentUser
-        etName.setText(user.name)
-        etEmail.setText(user.email)
-        etPhone.setText(user.phone)
-        etBlood.setText(user.bloodType)
+        binding.etEditName.setText(user.name)
+        binding.etEditEmail.setText(user.email)
+        binding.etEditPhone.setText(user.phone)
+        binding.etEditBloodType.setText(user.bloodType)
+        binding.etEditAge.setText(user.age)
+        binding.etEditMedical.setText(user.medicalConditions)
+        binding.etEditNotes.setText(user.emergencyNotes)
 
-        btnSave.setOnClickListener {
-            val newName = etName.text.toString()
-            val newEmail = etEmail.text.toString()
-            val newPhone = etPhone.text.toString()
-            val newBlood = etBlood.text.toString()
+        binding.btnSaveProfile.setOnClickListener {
+            val newName = binding.etEditName.text.toString()
+            val newEmail = binding.etEditEmail.text.toString()
+            val newPhone = binding.etEditPhone.text.toString()
+            val newBlood = binding.etEditBloodType.text.toString()
+            val newAge = binding.etEditAge.text.toString()
+            val newMedical = binding.etEditMedical.text.toString()
+            val newNotes = binding.etEditNotes.text.toString()
 
             if (newName.isEmpty() || newEmail.isEmpty()) {
                 Toast.makeText(this, "Name and Email required", Toast.LENGTH_SHORT).show()
@@ -38,10 +39,18 @@ class EditProfileActivity : AppCompatActivity() {
             }
 
             // Update MockData
-            MockData.currentUser = MockData.UserProfile(newName, newEmail, newPhone, newBlood)
+            MockData.currentUser = MockData.UserProfile(
+                name = newName,
+                email = newEmail,
+                phone = newPhone,
+                bloodType = newBlood,
+                age = newAge,
+                medicalConditions = newMedical,
+                emergencyNotes = newNotes
+            )
             
             Toast.makeText(this, "Profile Saved", Toast.LENGTH_SHORT).show()
-            finish() // Go back to ProfileFragment (onResume will refresh it)
+            finish()
         }
     }
 }

@@ -2,31 +2,26 @@ package com.example.the_sos_application
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.the_sos_application.databinding.ActivityLoginBinding
 
 class LoginActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityLoginBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
+        binding = ActivityLoginBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        val etEmail = findViewById<EditText>(R.id.etLoginEmail)
-        val etPassword = findViewById<EditText>(R.id.etLoginPassword)
-        val btnLogin = findViewById<Button>(R.id.btnLogin)
+        binding.btnSubmitLogin.setOnClickListener {
+            startActivity(Intent(this, MainActivity::class.java))
+            finishAffinity()
+        }
 
-        btnLogin.setOnClickListener {
-            val email = etEmail.text.toString()
-            val password = etPassword.text.toString()
-
-            if (email.isNotEmpty() && password.isNotEmpty()) {
-                Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show()
-                startActivity(Intent(this, MainActivity::class.java))
-                finishAffinity() // Clear all previous activities
-            } else {
-                Toast.makeText(this, "Please enter email and password", Toast.LENGTH_SHORT).show()
-            }
+        binding.tvGoToRegister.setOnClickListener {
+            startActivity(Intent(this, RegisterActivity::class.java))
+            finish()
         }
     }
 }

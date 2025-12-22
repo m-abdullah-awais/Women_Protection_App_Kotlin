@@ -3,7 +3,7 @@
     android:color="#4DFFFFFF"> <!-- White Ripple -->
     <item>
         <shape android:shape="oval">
-            <solid android:color="@color/brand_accent_red"/>
+            <solid android:color="@color/colorPink"/>
             <!-- Optional conceptual shadow stroke -->
             <stroke android:width="4dp" android:color="#33D32F2F"/> 
         </shape>

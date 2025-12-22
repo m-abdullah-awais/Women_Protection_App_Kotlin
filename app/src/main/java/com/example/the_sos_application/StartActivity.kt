@@ -3,29 +3,26 @@ package com.example.the_sos_application
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.AppCompatButton
-import android.widget.TextView
+import com.example.the_sos_application.databinding.ActivityStartBinding
 
 class StartActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityStartBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_start)
+        binding = ActivityStartBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        val btnRegister = findViewById<AppCompatButton>(R.id.btnStartRegister)
-        val btnLogin = findViewById<AppCompatButton>(R.id.btnStartLogin)
-        val btnGuest = findViewById<TextView>(R.id.btnStartGuest)
-
-
-
-        btnRegister.setOnClickListener {
-            startActivity(Intent(this, RegisterActivity::class.java))
-        }
-        
-        btnLogin.setOnClickListener {
+        binding.btnLogin.setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
         }
-        
-        btnGuest.setOnClickListener {
+
+        binding.btnRegister.setOnClickListener {
+            startActivity(Intent(this, RegisterActivity::class.java))
+        }
+
+        binding.btnGuest.setOnClickListener {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
         }

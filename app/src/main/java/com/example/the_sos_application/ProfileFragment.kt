@@ -5,57 +5,57 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.TextView
 import androidx.fragment.app.Fragment
+import com.example.the_sos_application.databinding.FragmentProfileBinding
 
 class ProfileFragment : Fragment() {
 
-    private lateinit var tvName: TextView
-    private lateinit var tvEmail: TextView
+    private var _binding: FragmentProfileBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_profile, container, false)
+    ): View {
+        _binding = FragmentProfileBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        
+        loadProfileData()
 
-        tvName = view.findViewById(R.id.tvName)
-        tvEmail = view.findViewById(R.id.tvEmail)
-        val btnEdit = view.findViewById<Button>(R.id.btnEditProfile)
-        val btnLogout = view.findViewById<Button>(R.id.btnLogout)
-        val btnGuide = view.findViewById<Button>(R.id.btnUserGuide)
-
-        updateUI()
-
-        btnEdit.setOnClickListener {
-            startActivity(Intent(requireContext(), EditProfileActivity::class.java))
+        binding.btnEditProfile.setOnClickListener {
+            startActivity(Intent(requireActivity(), EditProfileActivity::class.java))
         }
 
-        btnGuide.setOnClickListener {
-            startActivity(Intent(requireContext(), GuideActivity::class.java))
-        }
-
-        btnLogout.setOnClickListener {
-            MockData.resetSelection()
-            val intent = Intent(requireContext(), StartActivity::class.java)
+        binding.btnLogout.setOnClickListener {
+            val intent = Intent(requireActivity(), StartActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
         }
     }
-
+    
     override fun onResume() {
         super.onResume()
-        updateUI()
+        loadProfileData() // Refresh data when coming back from EditProfile
     }
 
-    private fun updateUI() {
+    private fun loadProfileData() {
         val user = MockData.currentUser
-        tvName.text = user.name
-        tvEmail.text = "${user.email}\n${user.phone}"
+        binding.tvName.text = user.name
+        binding.tvEmail.text = user.email
+        // Phone number removed for compactness
+        binding.tvBlood.text = user.bloodType
+        binding.tvAge.text = user.age
+        binding.tvMedical.text = user.medicalConditions
+        binding.tvNotes.text = user.emergencyNotes
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
