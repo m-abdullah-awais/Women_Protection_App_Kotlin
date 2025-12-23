@@ -28,7 +28,42 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.btnSOS.setOnClickListener {
-            triggerSOS()
+            // Updated SOS Trigger with Countdown
+            showSOSCountdown()
+        }
+    }
+
+    private fun showSOSCountdown() {
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_sos_countdown, null)
+        val dialogBuilder = androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .setCancelable(false)
+        
+        val dialog = dialogBuilder.create()
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.show()
+
+        val tvCountdown = dialogView.findViewById<android.widget.TextView>(R.id.tvCountdown)
+        val btnCancel = dialogView.findViewById<android.view.View>(R.id.btnCancelSOS)
+
+        // 5 Second Countdown
+        val timer = object : android.os.CountDownTimer(5000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                val secondsLeft = (millisUntilFinished / 1000) + 1
+                tvCountdown.text = secondsLeft.toString()
+            }
+
+            override fun onFinish() {
+                dialog.dismiss()
+                 // Existing SOS Logic
+                triggerSOS()
+            }
+        }.start()
+
+        btnCancel.setOnClickListener {
+            timer.cancel()
+            dialog.dismiss()
+            Toast.makeText(requireContext(), "SOS Cancelled", Toast.LENGTH_SHORT).show()
         }
     }
 

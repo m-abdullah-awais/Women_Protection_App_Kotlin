@@ -13,7 +13,7 @@
     <color name="colorLightGray">#FAFAFA</color>
     <color name="colorTextDark">#212121</color>
     <color name="colorTextLight">#757575</color>
-    <color name="colorHintText">#9E9E9E</color>  <!-- Visible gray for hints -->
+    <color name="colorHintText">#212121</color>  <!-- Darkest gray for maximum visibility -->
     
     <!-- Theme Attributes -->
     <color name="colorPrimary">@color/colorPink</color>

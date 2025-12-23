@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -42,8 +41,9 @@
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"
         android:hint="Search contacts..."
+        android:textColorHint="@color/colorHintText"
         app:boxStrokeColor="@color/colorPink"
-        app:hintTextColor="@color/black"
+        app:hintTextColor="@color/colorHintText"
         app:startIconDrawable="@android:drawable/ic_menu_search"
         app:startIconTint="@color/colorPink"
         app:layout_constraintEnd_toEndOf="parent"
@@ -55,7 +55,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/black"
-            android:textColorHint="@color/black"
+            android:textColorHint="@color/colorHintText"
             android:inputType="textPersonName" />
     </com.google.android.material.textfield.TextInputLayout>
 

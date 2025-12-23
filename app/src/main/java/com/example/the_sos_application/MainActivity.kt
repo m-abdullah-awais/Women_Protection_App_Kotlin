@@ -22,6 +22,7 @@ class MainActivity : AppCompatActivity() {
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             val fragment = when (item.itemId) {
                 R.id.nav_home -> HomeFragment()
+                R.id.nav_safety_checklist -> SafetyChecklistFragment()
                 R.id.nav_contacts -> ContactsFragment()
                 R.id.nav_tips -> TipsFragment()
                 R.id.nav_profile -> ProfileFragment()

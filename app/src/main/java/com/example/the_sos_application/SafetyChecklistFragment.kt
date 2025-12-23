@@ -5,11 +5,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.example.the_sos_application.databinding.FragmentTipsBinding
+import com.example.the_sos_application.databinding.FragmentSafetyChecklistBinding
 
-class TipsFragment : Fragment() {
+class SafetyChecklistFragment : Fragment() {
 
-    private var _binding: FragmentTipsBinding? = null
+    private var _binding: FragmentSafetyChecklistBinding? = null
     private val binding get() = _binding!!
 
     override fun onCreateView(
@@ -17,7 +17,7 @@ class TipsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentTipsBinding.inflate(inflater, container, false)
+        _binding = FragmentSafetyChecklistBinding.inflate(inflater, container, false)
         return binding.root
     }
 

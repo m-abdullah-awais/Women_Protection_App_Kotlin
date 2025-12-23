@@ -4,6 +4,11 @@
         android:icon="@drawable/ic_nav_sos"
         android:title="SOS" />
     <item
+        android:id="@+id/nav_safety_checklist"
+        android:icon="@drawable/ic_nav_checklist"
+        android:title="Checklist" />
+        
+    <item
         android:id="@+id/nav_contacts"
         android:icon="@drawable/ic_nav_contacts"
         android:title="Contacts" />
