@@ -131,6 +131,15 @@
                             android:textColorHint="@color/colorHintText" />
                     </com.google.android.material.textfield.TextInputLayout>
 
+                    <CheckBox
+                        android:id="@+id/cbTerms"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:text="@string/terms_agreement"
+                        android:textColor="@color/colorTextDark"
+                        android:theme="@style/PinkCheckBoxTheme" />
+
                     <Button
                         android:id="@+id/btnSubmitRegister"
                         android:layout_width="match_parent"
