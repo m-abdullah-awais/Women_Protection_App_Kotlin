@@ -22,4 +22,6 @@
     <color name="colorSecondary">@color/colorSoftPurple</color>
     <color name="colorSecondaryVariant">@color/colorLavender</color>
     <color name="colorOnSecondary">@color/white</color>
+    
+    <color name="colorLogoBackground">#2E003E</color>
 </resources>
