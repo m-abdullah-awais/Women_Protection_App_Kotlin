@@ -48,14 +48,29 @@ class ProfileFragment : Fragment() {
     }
 
     private fun loadProfileData() {
-        val user = MockData.currentUser
-        binding.tvName.text = user.name
-        binding.tvEmail.text = user.email
-        // Phone number removed for compactness
-        binding.tvBlood.text = user.bloodType
-        binding.tvAge.text = user.age
-        binding.tvMedical.text = user.medicalConditions
-        binding.tvNotes.text = user.emergencyNotes
+        val userId = FirebaseAuthHelper.getCurrentUserId()
+        if (userId == null) {
+            // Should prompt login or handle error
+            return
+        }
+
+        FirestoreRepository.getUserProfile(userId,
+            onSuccess = { user ->
+                binding.tvName.text = user.name
+                binding.tvEmail.text = user.email
+                // Phone number removed as per requirements (not stored in user profile)
+                binding.tvBlood.text = user.bloodGroup
+                binding.tvAge.text = user.age
+                binding.tvMedical.text = user.medicalHistory
+                binding.tvNotes.text = user.emergencyNotes
+            },
+            onFailure = { e ->
+                // binding.progressBar?.visibility = View.GONE
+                if (context != null) {
+                    android.widget.Toast.makeText(context, "Error loading profile: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
     }
 
     override fun onDestroyView() {

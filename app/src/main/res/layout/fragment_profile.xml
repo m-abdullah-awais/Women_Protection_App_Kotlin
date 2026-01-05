@@ -104,26 +104,7 @@
                 android:orientation="horizontal"
                 android:layout_marginBottom="8dp">
 
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1.2"
-                    android:orientation="vertical">
-                    <TextView
-                        android:text="Phone"
-                        android:textColor="@color/colorTextLight"
-                        android:textSize="11sp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-                    <TextView
-                        android:id="@+id/tvPhone"
-                        android:text="+1234567890"
-                        android:textColor="@color/colorTextDark"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-                </LinearLayout>
+                <!-- Phone section removed -->
 
                 <LinearLayout
                     android:layout_width="0dp"

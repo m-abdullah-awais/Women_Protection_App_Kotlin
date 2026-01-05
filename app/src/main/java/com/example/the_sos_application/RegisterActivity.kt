@@ -23,8 +23,51 @@ class RegisterActivity : AppCompatActivity() {
         setupTermsAndPrivacyLinks()
 
         binding.btnSubmitRegister.setOnClickListener {
-            startActivity(Intent(this, MainActivity::class.java))
-            finishAffinity()
+            val name = binding.tilName.editText?.text.toString().trim()
+            val email = binding.tilRegEmail.editText?.text.toString().trim()
+            val password = binding.tilRegPassword.editText?.text.toString().trim()
+            val confirmPassword = binding.tilConfirmPassword.editText?.text.toString().trim()
+
+            if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+                android.widget.Toast.makeText(this, "Please fill all fields", android.widget.Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (password != confirmPassword) {
+                android.widget.Toast.makeText(this, "Passwords do not match", android.widget.Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (!binding.cbTerms.isChecked) {
+                android.widget.Toast.makeText(this, "Please agree to Terms and Privacy Policy", android.widget.Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Register with Firebase
+            FirebaseAuthHelper.getAuth().createUserWithEmailAndPassword(email, password)
+                .addOnSuccessListener { authResult ->
+                    val userId = authResult.user?.uid
+                    if (userId != null) {
+                        // Create User Profile in Firestore
+                        val newUser = FirestoreRepository.UserProfile(
+                            name = name,
+                            email = email
+                        )
+                        FirestoreRepository.saveUserProfile(userId, newUser,
+                            onSuccess = {
+                                android.widget.Toast.makeText(this, "Registration Successful", android.widget.Toast.LENGTH_SHORT).show()
+                                startActivity(Intent(this, MainActivity::class.java))
+                                finishAffinity()
+                            },
+                            onFailure = { e ->
+                                android.widget.Toast.makeText(this, "Failed to save profile: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                            }
+                        )
+                    }
+                }
+                .addOnFailureListener { e ->
+                    android.widget.Toast.makeText(this, "Registration Failed: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                }
         }
 
         binding.tvGoToLogin.setOnClickListener {

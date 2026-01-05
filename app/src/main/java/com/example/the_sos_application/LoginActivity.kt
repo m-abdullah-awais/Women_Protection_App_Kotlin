@@ -15,8 +15,23 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.btnSubmitLogin.setOnClickListener {
-            startActivity(Intent(this, MainActivity::class.java))
-            finishAffinity()
+            val email = binding.tilEmail.editText?.text.toString().trim()
+            val password = binding.tilPassword.editText?.text.toString().trim()
+
+            if (email.isEmpty() || password.isEmpty()) {
+                android.widget.Toast.makeText(this, "Please fill all fields", android.widget.Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            FirebaseAuthHelper.getAuth().signInWithEmailAndPassword(email, password)
+                .addOnSuccessListener {
+                    android.widget.Toast.makeText(this, "Login Successful", android.widget.Toast.LENGTH_SHORT).show()
+                    startActivity(Intent(this, MainActivity::class.java))
+                    finishAffinity()
+                }
+                .addOnFailureListener { e ->
+                    android.widget.Toast.makeText(this, "Login Failed: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                }
         }
 
         binding.tvGoToRegister.setOnClickListener {

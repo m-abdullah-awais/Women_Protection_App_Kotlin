@@ -19,11 +19,28 @@ class SosSettingsActivity : AppCompatActivity() {
     }
 
     private fun setupInitialState() {
-        // Load state from Singleton
-        binding.switchEnableSos.isChecked = SosSettingsManager.isSosEnabled
-        binding.switchIncludePolice.isChecked = SosSettingsManager.isPoliceEnabled
-
-        updateDependencyUI(SosSettingsManager.isSosEnabled)
+        // Load state from Firestore
+        val userId = FirebaseAuthHelper.getCurrentUserId() ?: return
+        
+        // binding.progressBar?.visibility = View.VISIBLE // Assuming progress bar exists or added dynamically, or just ignore UI feedback for now if missing
+        
+        FirestoreRepository.getUserProfile(userId,
+            onSuccess = { user ->
+                // binding.progressBar?.visibility = View.GONE
+                binding.switchEnableSos.isChecked = user.sosEnabled
+                binding.switchIncludePolice.isChecked = user.policeEnabled
+                
+                // Update local singleton as cache
+                SosSettingsManager.isSosEnabled = user.sosEnabled
+                SosSettingsManager.isPoliceEnabled = user.policeEnabled
+                
+                updateDependencyUI(user.sosEnabled)
+            },
+            onFailure = {
+                // binding.progressBar?.visibility = View.GONE
+                android.widget.Toast.makeText(this, "Failed to load settings", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        )
     }
 
     private fun setupListeners() {
@@ -34,11 +51,28 @@ class SosSettingsActivity : AppCompatActivity() {
         binding.switchEnableSos.setOnCheckedChangeListener { _, isChecked ->
             SosSettingsManager.isSosEnabled = isChecked
             updateDependencyUI(isChecked)
+            saveSettings()
         }
 
         binding.switchIncludePolice.setOnCheckedChangeListener { _, isChecked ->
             SosSettingsManager.isPoliceEnabled = isChecked
+            saveSettings()
         }
+    }
+
+    private fun saveSettings() {
+        val userId = FirebaseAuthHelper.getCurrentUserId() ?: return
+        val sosEnabled = binding.switchEnableSos.isChecked
+        val policeEnabled = binding.switchIncludePolice.isChecked
+        
+        FirestoreRepository.updateUserSettings(userId, sosEnabled, policeEnabled,
+            onSuccess = {
+               // Log.d("SosSettings", "Settings saved")
+            },
+            onFailure = {
+               android.widget.Toast.makeText(this, "Failed to save settings", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        )
     }
 
     private fun updateDependencyUI(isSosEnabled: Boolean) {

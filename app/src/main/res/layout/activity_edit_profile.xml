@@ -64,17 +64,7 @@
                 android:textColor="@color/colorTextDark"
                 android:textColorHint="@color/colorHintText" />
 
-            <EditText
-                android:id="@+id/etEditPhone"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginBottom="16dp"
-                android:background="@drawable/bg_card"
-                android:hint="Phone Number"
-                android:inputType="phone"
-                android:padding="16dp"
-                android:textColor="@color/colorTextDark"
-                android:textColorHint="@color/colorHintText" />
+            <!-- Phone Number Field Removed -->
                 
             <LinearLayout
                 android:layout_width="match_parent"

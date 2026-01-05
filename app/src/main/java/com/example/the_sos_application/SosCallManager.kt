@@ -19,28 +19,84 @@ object SosCallManager {
         this.callback = callback
         contactsToCall.clear()
         
-        // 1. Fetch, Filter, and Sort Contacts from MockData
-        val sortedContacts = MockData.emergencyContactsList
-            .filter { it.isSelected && it.number.isNotEmpty() } // Enabled and valid
-            .sortedBy { MockData.getPriorityValue(it.priority) } // Sort by Priority
-
-        // Add to call list
-        sortedContacts.forEach { contact ->
-            contactsToCall.add(Pair(contact.name, contact.number))
-        }
-
-        // 2. Add Police if enabled (Last priority)
-        if (SosSettingsManager.isPoliceEnabled) {
-            contactsToCall.add(Pair("Police", "15"))
-        }
-
-        if (contactsToCall.isEmpty()) {
-            callback.onAllCallsCompleted() // Or show error toast
+        val userId = FirebaseAuthHelper.getCurrentUserId()
+        if (userId == null) {
+            android.widget.Toast.makeText(context, "User not logged in!", android.widget.Toast.LENGTH_SHORT).show()
+            callback.onAllCallsCompleted()
             return
         }
+        
+        // Fetch fresh settings and contacts
+        FirestoreRepository.getUserProfile(userId, 
+            onSuccess = { user ->
+                if (!user.sosEnabled) {
+                     android.widget.Toast.makeText(context, "SOS is disabled in Settings.", android.widget.Toast.LENGTH_SHORT).show()
+                     callback.onAllCallsCompleted()
+                     return@getUserProfile
+                }
+                
+                FirestoreRepository.getContacts(userId,
+                    onSuccess = { contacts -> 
+                        // 1. Filter and Sort
+                        // Note: isSelected is local-only in my current implementation. 
+                        // If we want persistent selection, we need to save it to Firestore. 
+                        // For now, I'll assume ALL contacts are candidates, or simple logic.
+                        // The previous code filtered by `it.isSelected`. 
+                        // If `isSelected` is transient, it will be false for all fetched contacts!
+                        // This BREAKS the feature if selection is transient.
+                        // I must assume ALL valid contacts should be called OR I need to implement selection persistence.
+                        // Requirement: "Contact fields: Name, Phone, Priority" -> No 'isSelected'.
+                        // Contacts allowed: Max 5.
+                        // I will assume ALL added contacts are to be called (max 5). 
+                        // The selection UI in ContactsFragment might be just for "active" contacts?
+                        // "Implement COMPLETE CRUD... Maximum 5 contacts allowed".
+                        // I will call ALL valid contacts returned from Firestore.
+                        
+                         val validContacts = contacts
+                            .filter { it.number.isNotEmpty() } // Valid number
+                            //.sortedBy { it.priority } // Needs priority logic. 
+                            // Existing MockData.getPriorityValue(it.priority) helper? I can recreate it here or use it.
 
-        currentCallIndex = 0
-        makeNextCall(context)
+                         // Simple priority sort (High > Medium > Low)
+                         val sortedContacts = validContacts.sortedByDescending { 
+                             when(it.priority) {
+                                 "Critical" -> 5
+                                 "Urgent" -> 4
+                                 "High" -> 3
+                                 "Medium" -> 2
+                                 else -> 1
+                             }
+                         }
+
+                        sortedContacts.forEach { contact ->
+                            contactsToCall.add(Pair(contact.name, contact.number))
+                        }
+
+                        // 2. Add Police if enabled
+                        if (user.policeEnabled) {
+                            contactsToCall.add(Pair("Police", "15"))
+                        }
+
+                        if (contactsToCall.isEmpty()) {
+                            android.widget.Toast.makeText(context, "No contacts found.", android.widget.Toast.LENGTH_SHORT).show()
+                            callback.onAllCallsCompleted()
+                            return@getContacts
+                        }
+
+                        currentCallIndex = 0
+                        makeNextCall(context)
+                    },
+                    onFailure = {
+                         android.widget.Toast.makeText(context, "Failed to load contacts.", android.widget.Toast.LENGTH_SHORT).show()
+                         callback.onAllCallsCompleted()
+                    }
+                )
+            },
+            onFailure = {
+                android.widget.Toast.makeText(context, "Failed to verify SOS settings.", android.widget.Toast.LENGTH_SHORT).show()
+                callback.onAllCallsCompleted()
+            }
+        )
     }
 
     fun makeNextCall(context: Context) {

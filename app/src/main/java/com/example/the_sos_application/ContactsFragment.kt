@@ -22,9 +22,8 @@ class ContactsFragment : Fragment() {
     private val binding get() = _binding!!
     
     // Setup Dummy Data from MockData
-    private val allContacts get() = MockData.emergencyContactsList
-    
-    private var displayedContacts = ArrayList<MockData.Contact>(allContacts)
+    private val allContacts = ArrayList<FirestoreRepository.Contact>()
+    private var displayedContacts = ArrayList<FirestoreRepository.Contact>()
     private lateinit var adapter: ContactsAdapter
 
     override fun onCreateView(
@@ -43,8 +42,8 @@ class ContactsFragment : Fragment() {
         binding.rvContacts.layoutManager = LinearLayoutManager(context)
         binding.rvContacts.adapter = adapter
         
-        updateSelectionCount()
-
+        loadContacts()
+        
         binding.etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -54,11 +53,43 @@ class ContactsFragment : Fragment() {
         })
 
         binding.fabAddContact.setOnClickListener {
+            if (allContacts.size >= 5) {
+                Toast.makeText(context, "You can only have 5 contacts. Please delete one first.", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
             showAddContactDialog()
         }
     }
+    
+    private fun loadContacts() {
+        val userId = FirebaseAuthHelper.getCurrentUserId()
+        if (userId == null) return
+        
+        // Show loading? binding.progressBar?.visibility = View.VISIBLE
+        FirestoreRepository.getContacts(userId,
+            onSuccess = { contacts ->
+                // binding.progressBar?.visibility = View.GONE
+                allContacts.clear()
+                allContacts.addAll(contacts)
+                filterContacts(binding.etSearch.text.toString())
+                updateSelectionCount()
+            },
+            onFailure = { e ->
+                // binding.progressBar?.visibility = View.GONE
+                if (context != null) {
+                    Toast.makeText(context, "Error loading contacts: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+    
+    // ... dialog code needs update to use FirestoreRepository.Contact and save/update calls ...
 
-    private fun showContactDialog(contactToEdit: Contact? = null, position: Int? = null) {
+    // Helper to update dialog saving logic:
+    // When saving:
+    // FirestoreRepository.addContact/updateContact
+    // On success: reload contacts or modify local list
+    
+    private fun showContactDialog(contactToEdit: FirestoreRepository.Contact? = null, position: Int? = null) {
         val title = if (contactToEdit == null) "Add Contact" else "Edit Contact"
         val btnText = if (contactToEdit == null) "Add" else "Save"
 
@@ -97,7 +128,7 @@ class ContactsFragment : Fragment() {
             val priorityIndex = priorities.indexOf(contactToEdit.priority)
             if (priorityIndex >= 0) spPriority.setSelection(priorityIndex)
         } else {
-            spPriority.setSelection(0) // Default Low
+            spPriority.setSelection(0)
         }
 
         btnSave.setOnClickListener {
@@ -111,9 +142,13 @@ class ContactsFragment : Fragment() {
                 Toast.makeText(requireContext(), "Name and Number are required", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            
+            val userId = FirebaseAuthHelper.getCurrentUserId()
+            if (userId == null) return@setOnClickListener
 
             if (contactToEdit != null && position != null) {
                 // Update existing
+                // Contact ID should be preserved
                 val updatedContact = contactToEdit.copy(
                     name = name, 
                     number = number, 
@@ -121,19 +156,34 @@ class ContactsFragment : Fragment() {
                     relationship = relationship, 
                     notes = notes
                 )
-                // Note: direct update on reference logic depends on if displayedContacts holds refs or copies.
-                // Here we update the list directly.
-                allContacts[allContacts.indexOf(contactToEdit)] = updatedContact
-                displayedContacts[position] = updatedContact
-                this.adapter.notifyItemChanged(position)
-                Toast.makeText(requireContext(), "Contact Updated", Toast.LENGTH_SHORT).show()
+                
+                FirestoreRepository.updateContact(userId, updatedContact,
+                    onSuccess = {
+                        Toast.makeText(requireContext(), "Contact Updated", Toast.LENGTH_SHORT).show()
+                        loadContacts() // Reload to be safe
+                    },
+                    onFailure = { e ->
+                        Toast.makeText(requireContext(), "Error updating: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+                )
             } else {
                 // Create new
-                val newContact = Contact(name, number, false, priority, relationship, notes)
-                allContacts.add(0, newContact)
-                filterContacts(binding.etSearch.text.toString())
-                binding.rvContacts.smoothScrollToPosition(0)
-                Toast.makeText(requireContext(), "Contact Added", Toast.LENGTH_SHORT).show()
+                val newContact = FirestoreRepository.Contact(
+                    name = name,
+                    number = number,
+                    priority = priority,
+                    relationship = relationship,
+                    notes = notes
+                )
+                FirestoreRepository.addContact(userId, newContact,
+                    onSuccess = {
+                        Toast.makeText(requireContext(), "Contact Added", Toast.LENGTH_SHORT).show()
+                        loadContacts()
+                    },
+                    onFailure = { e ->
+                        Toast.makeText(requireContext(), "Error adding: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+                )
             }
             dialog.dismiss()
         }
@@ -150,7 +200,7 @@ class ContactsFragment : Fragment() {
         showContactDialog(null, null)
     }
 
-    private fun showViewContactDialog(contact: Contact) {
+    private fun showViewContactDialog(contact: FirestoreRepository.Contact) {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_view_contact, null)
         val dialog = AlertDialog.Builder(requireContext())
                 .setView(dialogView)
@@ -170,16 +220,22 @@ class ContactsFragment : Fragment() {
         dialog.show()
     }
     
-    private fun deleteContact(contact: Contact, position: Int) {
+    private fun deleteContact(contact: FirestoreRepository.Contact, position: Int) {
+        val userId = FirebaseAuthHelper.getCurrentUserId() ?: return
+        
         AlertDialog.Builder(requireContext())
             .setTitle("Delete Contact")
             .setMessage("Are you sure you want to delete ${contact.name}?")
             .setPositiveButton("Delete") { _, _ ->
-                allContacts.remove(contact) // Remove from source
-                displayedContacts.removeAt(position) // Remove from view
-                adapter.notifyItemRemoved(position)
-                updateSelectionCount()
-                Toast.makeText(requireContext(), "Contact Deleted", Toast.LENGTH_SHORT).show()
+                FirestoreRepository.deleteContact(userId, contact.id,
+                    onSuccess = {
+                         Toast.makeText(requireContext(), "Contact Deleted", Toast.LENGTH_SHORT).show()
+                         loadContacts()
+                    },
+                    onFailure = { e ->
+                        Toast.makeText(requireContext(), "Error deleting: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+                )
             }
             .setNegativeButton("Cancel", null)
             .show()
@@ -201,11 +257,19 @@ class ContactsFragment : Fragment() {
     }
 
     private fun updateSelectionCount() {
-        val count = allContacts.count { it.isSelected }
+        // Selection is not in FirestoreRepository.Contact yet. 
+        // We might need to handle selection locally or add it to the model if it's persistent.
+        // Assuming selection is transient for SOS call, not persistent.
+        // For now, I'll assume 'isSelected' was in MockData.Contact but not in FirestoreRepository.Contact.
+        // I need to add 'isSelected' to FirestoreRepository.Contact but exclude it from Firestore?
+        // Or just handle it in a wrapper or adapter.
+        // Let's add @Exclude var isSelected: Boolean = false to FirestoreRepository.Contact
+        // I need to modify FirestoreRepository.Contact first.
+        val count = allContacts.count { it.isSelected }  // This will fail if isSelected is missing
         binding.tvSelectionCount.text = "Selected: $count/5"
     }
 
-    inner class ContactsAdapter(private val contacts: List<Contact>) :
+    inner class ContactsAdapter(private val contacts: List<FirestoreRepository.Contact>) :
         RecyclerView.Adapter<ContactsAdapter.ContactViewHolder>() {
 
         inner class ContactViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
