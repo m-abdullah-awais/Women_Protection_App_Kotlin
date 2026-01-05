@@ -23,13 +23,20 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            binding.progressBar.visibility = android.view.View.VISIBLE
+            binding.btnSubmitLogin.isEnabled = false
+
             FirebaseAuthHelper.getAuth().signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener {
+                    binding.progressBar.visibility = android.view.View.GONE
+                    binding.btnSubmitLogin.isEnabled = true
                     android.widget.Toast.makeText(this, "Login Successful", android.widget.Toast.LENGTH_SHORT).show()
                     startActivity(Intent(this, MainActivity::class.java))
                     finishAffinity()
                 }
                 .addOnFailureListener { e ->
+                    binding.progressBar.visibility = android.view.View.GONE
+                    binding.btnSubmitLogin.isEnabled = true
                     android.widget.Toast.makeText(this, "Login Failed: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
                 }
         }

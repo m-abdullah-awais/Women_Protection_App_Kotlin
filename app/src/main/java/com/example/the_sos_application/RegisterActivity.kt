@@ -44,6 +44,9 @@ class RegisterActivity : AppCompatActivity() {
             }
 
             // Register with Firebase
+            binding.progressBar.visibility = android.view.View.VISIBLE
+            binding.btnSubmitRegister.isEnabled = false
+
             FirebaseAuthHelper.getAuth().createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener { authResult ->
                     val userId = authResult.user?.uid
@@ -55,17 +58,26 @@ class RegisterActivity : AppCompatActivity() {
                         )
                         FirestoreRepository.saveUserProfile(userId, newUser,
                             onSuccess = {
+                                binding.progressBar.visibility = android.view.View.GONE
+                                binding.btnSubmitRegister.isEnabled = true
                                 android.widget.Toast.makeText(this, "Registration Successful", android.widget.Toast.LENGTH_SHORT).show()
                                 startActivity(Intent(this, MainActivity::class.java))
                                 finishAffinity()
                             },
                             onFailure = { e ->
+                                binding.progressBar.visibility = android.view.View.GONE
+                                binding.btnSubmitRegister.isEnabled = true
                                 android.widget.Toast.makeText(this, "Failed to save profile: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
                             }
                         )
+                    } else {
+                         binding.progressBar.visibility = android.view.View.GONE
+                         binding.btnSubmitRegister.isEnabled = true
                     }
                 }
                 .addOnFailureListener { e ->
+                    binding.progressBar.visibility = android.view.View.GONE
+                    binding.btnSubmitRegister.isEnabled = true
                     android.widget.Toast.makeText(this, "Registration Failed: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
                 }
         }

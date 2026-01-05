@@ -38,8 +38,8 @@ object FirestoreRepository {
         var relationship: String = "",
         var notes: String = "",
         
-        @com.google.firebase.firestore.Exclude
-        var isSelected: Boolean = false // Local only
+        // @Exclude removed to make it persistent
+        var isSelected: Boolean = false
     )
 
     // --- User Profile Operations ---

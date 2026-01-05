@@ -22,11 +22,14 @@ class SosSettingsActivity : AppCompatActivity() {
         // Load state from Firestore
         val userId = FirebaseAuthHelper.getCurrentUserId() ?: return
         
-        // binding.progressBar?.visibility = View.VISIBLE // Assuming progress bar exists or added dynamically, or just ignore UI feedback for now if missing
-        
+        binding.progressBar.visibility = View.VISIBLE
+        binding.cvSettings.visibility = View.INVISIBLE
+
         FirestoreRepository.getUserProfile(userId,
             onSuccess = { user ->
-                // binding.progressBar?.visibility = View.GONE
+                binding.progressBar.visibility = View.GONE
+                binding.cvSettings.visibility = View.VISIBLE
+                
                 binding.switchEnableSos.isChecked = user.sosEnabled
                 binding.switchIncludePolice.isChecked = user.policeEnabled
                 
@@ -37,7 +40,11 @@ class SosSettingsActivity : AppCompatActivity() {
                 updateDependencyUI(user.sosEnabled)
             },
             onFailure = {
-                // binding.progressBar?.visibility = View.GONE
+                binding.progressBar.visibility = View.GONE
+                // Even on failure, we should probably show the settings (maybe defaults?)
+                // Or keep them hidden and show error? 
+                // Let's show them to allow retry or default state interaction
+                binding.cvSettings.visibility = View.VISIBLE
                 android.widget.Toast.makeText(this, "Failed to load settings", android.widget.Toast.LENGTH_SHORT).show()
             }
         )

@@ -53,9 +53,7 @@ object SosCallManager {
                         // I will call ALL valid contacts returned from Firestore.
                         
                          val validContacts = contacts
-                            .filter { it.number.isNotEmpty() } // Valid number
-                            //.sortedBy { it.priority } // Needs priority logic. 
-                            // Existing MockData.getPriorityValue(it.priority) helper? I can recreate it here or use it.
+                            .filter { it.isSelected && it.number.isNotEmpty() } // Valid number and Selected
 
                          // Simple priority sort (High > Medium > Low)
                          val sortedContacts = validContacts.sortedByDescending { 

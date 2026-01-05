@@ -66,16 +66,30 @@ class ContactsFragment : Fragment() {
         if (userId == null) return
         
         // Show loading? binding.progressBar?.visibility = View.VISIBLE
+        binding.progressBar.visibility = View.VISIBLE
+        binding.rvContacts.visibility = View.GONE
+        binding.tvEmptyState.visibility = View.GONE
+
         FirestoreRepository.getContacts(userId,
             onSuccess = { contacts ->
-                // binding.progressBar?.visibility = View.GONE
+                binding.progressBar.visibility = View.GONE
+                
                 allContacts.clear()
                 allContacts.addAll(contacts)
+                
+                if (allContacts.isEmpty()) {
+                    binding.tvEmptyState.visibility = View.VISIBLE
+                    binding.rvContacts.visibility = View.GONE
+                } else {
+                    binding.tvEmptyState.visibility = View.GONE
+                    binding.rvContacts.visibility = View.VISIBLE
+                }
+                
                 filterContacts(binding.etSearch.text.toString())
                 updateSelectionCount()
             },
             onFailure = { e ->
-                // binding.progressBar?.visibility = View.GONE
+                binding.progressBar.visibility = View.GONE
                 if (context != null) {
                     Toast.makeText(context, "Error loading contacts: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
@@ -306,6 +320,20 @@ class ContactsFragment : Fragment() {
                 } else {
                     contact.isSelected = isChecked
                     updateSelectionCount()
+                    
+                    // Save selection to Firestore
+                    val userId = FirebaseAuthHelper.getCurrentUserId()
+                    if (userId != null) {
+                        FirestoreRepository.updateContact(userId, contact,
+                            onSuccess = { 
+                                // Silent success or optional log
+                            },
+                            onFailure = {
+                                Toast.makeText(context, "Failed to save selection", Toast.LENGTH_SHORT).show()
+                                // Revert UI if needed, but keeping it simple for now
+                            }
+                        )
+                    }
                 }
             }
             

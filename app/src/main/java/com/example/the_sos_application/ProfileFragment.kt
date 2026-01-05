@@ -54,8 +54,22 @@ class ProfileFragment : Fragment() {
             return
         }
 
+        binding.progressBar.visibility = View.VISIBLE
+        binding.ivProfileImage.visibility = View.INVISIBLE
+        binding.tvName.visibility = View.INVISIBLE
+        binding.tvEmail.visibility = View.INVISIBLE
+        binding.btnEditProfile.visibility = View.INVISIBLE
+        binding.cvEmergencyInfo.visibility = View.INVISIBLE
+
         FirestoreRepository.getUserProfile(userId,
             onSuccess = { user ->
+                binding.progressBar.visibility = View.GONE
+                binding.ivProfileImage.visibility = View.VISIBLE
+                binding.tvName.visibility = View.VISIBLE
+                binding.tvEmail.visibility = View.VISIBLE
+                binding.btnEditProfile.visibility = View.VISIBLE
+                binding.cvEmergencyInfo.visibility = View.VISIBLE
+
                 binding.tvName.text = user.name
                 binding.tvEmail.text = user.email
                 // Phone number removed as per requirements (not stored in user profile)
@@ -65,7 +79,7 @@ class ProfileFragment : Fragment() {
                 binding.tvNotes.text = user.emergencyNotes
             },
             onFailure = { e ->
-                // binding.progressBar?.visibility = View.GONE
+                binding.progressBar.visibility = View.GONE
                 if (context != null) {
                     android.widget.Toast.makeText(context, "Error loading profile: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
                 }
