@@ -14,36 +14,17 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.the_sos_application.databinding.FragmentContactsBinding
+import com.example.the_sos_application.MockData.Contact
 
 class ContactsFragment : Fragment() {
 
     private var _binding: FragmentContactsBinding? = null
     private val binding get() = _binding!!
     
-    // Setup Dummy Data
-    data class Contact(
-        val name: String, 
-        val number: String, 
-        var isSelected: Boolean = false, 
-        var priority: String = "Low",
-        val relationship: String = "",
-        val notes: String = ""
-    )
-
-    private val allContacts = mutableListOf<Contact>(
-        Contact("Mom", "+1234567890", relationship = "Mother", priority = "High"),
-        Contact("Dad", "+1987654321", relationship = "Father", priority = "High"),
-        Contact("Police Station", "100", relationship = "Emergency", priority = "Critical"),
-        Contact("Sister", "+1122334455", relationship = "Sister", priority = "Medium"),
-        Contact("Brother", "+1554433221", relationship = "Brother", priority = "Medium"),
-        Contact("Best Friend", "+1998877665", relationship = "Friend", priority = "Low"),
-        Contact("Office Security", "+1445566778", relationship = "Security", priority = "Low"),
-        Contact("Neighbor", "+1223344556", relationship = "Neighbor", priority = "Low"),
-        Contact("Doctor", "+1777888999", relationship = "Doctor", priority = "Urgent"),
-        Contact("Emergency Hotline", "911", relationship = "Emergency", priority = "Critical")
-    )
+    // Setup Dummy Data from MockData
+    private val allContacts get() = MockData.emergencyContactsList
     
-    private var displayedContacts = ArrayList<Contact>(allContacts)
+    private var displayedContacts = ArrayList<MockData.Contact>(allContacts)
     private lateinit var adapter: ContactsAdapter
 
     override fun onCreateView(

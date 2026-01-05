@@ -31,6 +31,10 @@ class ProfileFragment : Fragment() {
             startActivity(Intent(requireActivity(), EditProfileActivity::class.java))
         }
 
+        binding.btnSosSettings.setOnClickListener {
+            startActivity(Intent(requireActivity(), SosSettingsActivity::class.java))
+        }
+
         binding.btnLogout.setOnClickListener {
             val intent = Intent(requireActivity(), StartActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
