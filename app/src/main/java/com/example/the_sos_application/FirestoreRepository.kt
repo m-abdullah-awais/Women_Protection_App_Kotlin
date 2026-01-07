@@ -27,7 +27,9 @@ object FirestoreRepository {
         var medicalHistory: String = "",
         var emergencyNotes: String = "",
         var sosEnabled: Boolean = true,
-        var policeEnabled: Boolean = false
+
+        var policeEnabled: Boolean = false,
+        var profileImage: String = "" // Base64 encoded image
     )
 
     data class Contact(
@@ -97,6 +99,22 @@ object FirestoreRepository {
             .update(updates)
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onFailure(it) }
+    }
+
+    /**
+     * Update Profile Image (Base64).
+     */
+    fun updateProfileImage(userId: String, base64Image: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        db.collection(USERS_COLLECTION).document(userId)
+            .update("profileImage", base64Image)
+            .addOnSuccessListener { 
+                Log.d(TAG, "Profile image updated for $userId")
+                onSuccess() 
+            }
+            .addOnFailureListener { 
+                Log.e(TAG, "Error updating profile image", it)
+                onFailure(it) 
+            }
     }
 
 

@@ -6,12 +6,25 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.activity.result.contract.ActivityResultContracts
 import com.example.the_sos_application.databinding.FragmentProfileBinding
 
 class ProfileFragment : Fragment() {
 
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
+
+    private val getContent = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null && context != null) {
+            val bitmap = ImageUtils.getBitmapFromUri(requireContext(), uri)
+            if (bitmap != null) {
+                val base64Image = ImageUtils.bitmapToBase64(bitmap)
+                uploadProfileImage(base64Image)
+            } else {
+                android.widget.Toast.makeText(context, "Failed to load image", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -26,6 +39,16 @@ class ProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         
         loadProfileData()
+
+
+
+        binding.ivProfileImage.setOnClickListener {
+            getContent.launch("image/*")
+        }
+
+         binding.ivEditIcon.setOnClickListener {
+            getContent.launch("image/*")
+        }
 
         binding.btnEditProfile.setOnClickListener {
             startActivity(Intent(requireActivity(), EditProfileActivity::class.java))
@@ -72,6 +95,18 @@ class ProfileFragment : Fragment() {
                     binding.tvAge.text = user.age
                     binding.tvMedical.text = user.medicalHistory
                     binding.tvNotes.text = user.emergencyNotes
+
+                    if (user.profileImage.isNotEmpty()) {
+                        val bitmap = ImageUtils.base64ToBitmap(user.profileImage)
+                        if (bitmap != null) {
+                            binding.ivProfileImage.setImageBitmap(bitmap)
+                            binding.ivProfileImage.imageTintList = null // Remove tint for actual image
+                        }
+                    } else {
+                         // Reset to default
+                         binding.ivProfileImage.setImageResource(R.drawable.ic_launcher_foreground)
+                         binding.ivProfileImage.setColorFilter(android.graphics.Color.parseColor("#808080")) // Gray tint
+                    }
                 }
             },
             onFailure = { e ->
@@ -85,13 +120,45 @@ class ProfileFragment : Fragment() {
         )
     }
 
+    private fun uploadProfileImage(base64Image: String) {
+        val userId = FirebaseAuthHelper.getCurrentUserId() ?: return
+        
+        setLoadingState(true)
+        
+        FirestoreRepository.updateProfileImage(userId, base64Image,
+            onSuccess = {
+                if (_binding != null) {
+                    setLoadingState(false)
+                    val bitmap = ImageUtils.base64ToBitmap(base64Image)
+                    if (bitmap != null) {
+                        binding.ivProfileImage.setImageBitmap(bitmap)
+                        binding.ivProfileImage.imageTintList = null
+                    }
+                    if (context != null) {
+                        android.widget.Toast.makeText(context, "Profile image updated", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                }
+            },
+            onFailure = { e ->
+                if (_binding != null) {
+                    setLoadingState(false)
+                     if (context != null) {
+                        android.widget.Toast.makeText(context, "Failed to update image: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        )
+    }
+
     private fun setLoadingState(isLoading: Boolean) {
         if (_binding == null) return
         
         binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         
         val contentVisibility = if (isLoading) View.INVISIBLE else View.VISIBLE
+
         binding.ivProfileImage.visibility = contentVisibility
+        binding.ivEditIcon.visibility = contentVisibility
         binding.tvName.visibility = contentVisibility
         binding.tvEmail.visibility = contentVisibility
         binding.btnEditProfile.visibility = contentVisibility
