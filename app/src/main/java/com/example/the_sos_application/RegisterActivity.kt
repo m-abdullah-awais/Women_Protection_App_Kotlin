@@ -28,18 +28,45 @@ class RegisterActivity : AppCompatActivity() {
             val password = binding.tilRegPassword.editText?.text.toString().trim()
             val confirmPassword = binding.tilConfirmPassword.editText?.text.toString().trim()
 
-            if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
-                android.widget.Toast.makeText(this, "Please fill all fields", android.widget.Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+            // Reset errors
+            binding.tilName.error = null
+            binding.tilRegEmail.error = null
+            binding.tilRegPassword.error = null
+            binding.tilConfirmPassword.error = null
+
+            var isValid = true
+
+            if (!ValidationUtils.isValidUsername(name)) {
+                binding.tilName.error = "Username must contain only alphabets (A-Z, a-z)"
+                isValid = false
+            }
+
+            if (!ValidationUtils.isValidEmail(email)) {
+                binding.tilRegEmail.error = "Email must be a valid @gmail.com address"
+                isValid = false
+            }
+
+            if (!ValidationUtils.isValidPassword(password)) {
+                binding.tilRegPassword.error = "Password must be 8+ chars, with 1 Upper, 1 Lower, 1 Number"
+                isValid = false
+            }
+
+            if (confirmPassword.isEmpty()) {
+                binding.tilConfirmPassword.error = "Please confirm your password"
+                isValid = false
             }
 
             if (password != confirmPassword) {
-                android.widget.Toast.makeText(this, "Passwords do not match", android.widget.Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+                binding.tilConfirmPassword.error = "Passwords do not match"
+                isValid = false
             }
 
             if (!binding.cbTerms.isChecked) {
                 android.widget.Toast.makeText(this, "Please agree to Terms and Privacy Policy", android.widget.Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (!isValid) {
                 return@setOnClickListener
             }
 

@@ -8,13 +8,15 @@
     android:paddingTop="24dp"
     tools:context=".StartActivity">
 
-    <ImageView
+    <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/ivLogo"
         android:layout_width="150dp"
         android:layout_height="150dp"
         android:layout_marginTop="80dp"
         android:contentDescription="@string/app_name"
+        android:scaleType="centerCrop"
         android:src="@drawable/logo_new"
+        app:shapeAppearanceOverlay="@style/CircleImage"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
