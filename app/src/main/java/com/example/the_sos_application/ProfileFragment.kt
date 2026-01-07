@@ -36,9 +36,15 @@ class ProfileFragment : Fragment() {
         }
 
         binding.btnLogout.setOnClickListener {
+            binding.btnLogout.isEnabled = false
+            binding.progressBar.visibility = View.VISIBLE
+            
+            FirebaseAuthHelper.logout()
+            
             val intent = Intent(requireActivity(), StartActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
+            requireActivity().finish()
         }
     }
     
@@ -50,41 +56,48 @@ class ProfileFragment : Fragment() {
     private fun loadProfileData() {
         val userId = FirebaseAuthHelper.getCurrentUserId()
         if (userId == null) {
-            // Should prompt login or handle error
+             // If user is null, simply stop or redirect (though redirect is handled elsewhere)
             return
         }
 
-        binding.progressBar.visibility = View.VISIBLE
-        binding.ivProfileImage.visibility = View.INVISIBLE
-        binding.tvName.visibility = View.INVISIBLE
-        binding.tvEmail.visibility = View.INVISIBLE
-        binding.btnEditProfile.visibility = View.INVISIBLE
-        binding.cvEmergencyInfo.visibility = View.INVISIBLE
+        setLoadingState(true)
 
         FirestoreRepository.getUserProfile(userId,
             onSuccess = { user ->
-                binding.progressBar.visibility = View.GONE
-                binding.ivProfileImage.visibility = View.VISIBLE
-                binding.tvName.visibility = View.VISIBLE
-                binding.tvEmail.visibility = View.VISIBLE
-                binding.btnEditProfile.visibility = View.VISIBLE
-                binding.cvEmergencyInfo.visibility = View.VISIBLE
-
-                binding.tvName.text = user.name
-                binding.tvEmail.text = user.email
-                // Phone number removed as per requirements (not stored in user profile)
-                binding.tvBlood.text = user.bloodGroup
-                binding.tvAge.text = user.age
-                binding.tvMedical.text = user.medicalHistory
-                binding.tvNotes.text = user.emergencyNotes
+                if (_binding != null) {
+                    setLoadingState(false)
+                    binding.tvName.text = user.name
+                    binding.tvEmail.text = user.email
+                    binding.tvBlood.text = user.bloodGroup
+                    binding.tvAge.text = user.age
+                    binding.tvMedical.text = user.medicalHistory
+                    binding.tvNotes.text = user.emergencyNotes
+                }
             },
             onFailure = { e ->
-                binding.progressBar.visibility = View.GONE
-                if (context != null) {
-                    android.widget.Toast.makeText(context, "Error loading profile: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                if (_binding != null) {
+                    setLoadingState(false)
+                    if (context != null) {
+                        android.widget.Toast.makeText(context, "Error loading profile: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         )
+    }
+
+    private fun setLoadingState(isLoading: Boolean) {
+        if (_binding == null) return
+        
+        binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        
+        val contentVisibility = if (isLoading) View.INVISIBLE else View.VISIBLE
+        binding.ivProfileImage.visibility = contentVisibility
+        binding.tvName.visibility = contentVisibility
+        binding.tvEmail.visibility = contentVisibility
+        binding.btnEditProfile.visibility = contentVisibility
+        binding.cvEmergencyInfo.visibility = contentVisibility
+        binding.btnSosSettings.visibility = contentVisibility
+        binding.btnLogout.visibility = contentVisibility
     }
 
     override fun onDestroyView() {
